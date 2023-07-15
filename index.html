@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbot - AvgBOT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f1f1f1;
+            overflow: hidden;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .chat-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 20px;
+        }
+        #chat-box {
+            height: 300px;
+            border: 1px solid #ccc;
+            overflow-y: scroll;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #chat-input {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        #chat-submit {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        #dark-mode-toggle {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #999;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .chat-message {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .chat-message .user {
+            font-weight: bold;
+            color: #333;
+        }
+        .chat-message .time {
+            font-size: 12px;
+            color: #999;
+        }
+        .bot-message {
+            background-color: #e6f3ff;
+            padding: 8px;
+            border-radius: 5px;
+            color: #333;
+        }
+        .user-message {
+            background-color: #f2f2f2;
+            text-align: right;
+            padding: 8px;
+            border-radius: 5px;
+            color: #333;
+        }
+        .user-message .content {
+            display: none;
+        }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        #limitation {
+            position: absolute;
+            bottom: 8px;
+            left: 16px;
+            font-size: 18px;
+        }
+        #knowlegde-port {
+            position: absolute;
+            bottom: 8px;
+            right: 16px;
+            font-size: 24px;
+            padding: 10px 30px;
+            background-color: #4CAF50;
+            color: #fff;
+            border-radius: 3px;
+            cursor: pointer;
+            border: none;
+        }
+        #knowlegde-port:hover {
+            background-color: #45a049;
+        }
+        .dark-mode {
+            background-color: #222;
+            color: #fff;
+        }
+        .dark-mode h1 {
+            color: #fff;
+        }
+        .dark-mode .chat-container {
+            background-color: #333;
+            border-color: #999;
+        }
+        .dark-mode .chat-message {
+            color: #fff;
+        }
+        .dark-mode .chat-message .user {
+            color: #fff;
+        }
+        .dark-mode .bot-message {
+            background-color: #003366;
+        }
+        .dark-mode .user-message {
+            background-color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chatbot - AvgBOT</h1>
+    <p id="limitation">The AvgBOT has limited knowledge. He can respond to specific messages only! </p>
+    <a href="knowlegde.html">
+        <button id="knowlegde-port">AvgBOT Knowledge</button>
+    </a>
+    <div class="chat-container">
+        <div id="chat-box"></div>
+        <input type="text" id="chat-input" placeholder="Type your message..." autocomplete="off">
+        <button id="chat-submit">Send</button>
+        <button id="dark-mode-toggle">Dark Mode</button>
+    </div>
+
+    <script>
+        var chatBox = document.getElementById('chat-box');
+        var chatInput = document.getElementById('chat-input');
+        var chatSubmit = document.getElementById('chat-submit');
+        var darkModeToggle = document.getElementById('dark-mode-toggle');
+
+        // Object with bot responses
+        const npcResponses = {
+            "how are you": ["I'm doing well, thank you.", "I'm great, how about you?"],
+            "what's your name": ["My name is AvgBOT (Average Bot).", "I'm AvgBOT, nice to meet you!"],
+            "how old are you": ["I don't have an age. I'm an AI!", "Age is just a number for bots like me."],
+            "tell me a joke": ["Sure! Why don't scientists trust atoms? Because they make up everything!", "Why was the math book sad? Because it had too many problems!"],
+            "hi": ["Hello! How can I assist you today?", "Hello! How can I assist you today?"],
+            "hello": ["Hello! How can I assist you today?","Hello! How can I assist you today?"]
+        };
+
+        // Function to append a new message to the chat box
+        function appendMessage(user, message, isBot) {
+            var timestamp = new Date().toLocaleTimeString();
+            var newMessage = document.createElement('div');
+            newMessage.className = 'chat-message';
+            newMessage.classList.add(isBot ? 'bot-message' : 'user-message');
+            newMessage.innerHTML = '<span class="user">' + user + '</span>: ' + message + '<br><span class="time">' + timestamp + '</span>';
+            chatBox.appendChild(newMessage);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Hide the user message content if it is a bot message
+            if (isBot) {
+                var userMessageContent = newMessage.querySelector('.content');
+                if (userMessageContent) {
+                    userMessageContent.style.display = 'none';
+                }
+            }
+        }
+
+        // Function to generate a random response from the bot
+        function getRandomResponse(responses) {
+            var randomIndex = Math.floor(Math.random() * responses.length);
+            return responses[randomIndex];
+        }
+
+        // Function to handle sending a message
+        function sendMessage() {
+            var message = chatInput.value;
+            if (message.trim() !== '') {
+                appendMessage('You', message, false);
+                chatInput.value = '';
+
+                // Check if the message has a known response from the bot
+                var response = npcResponses[message.toLowerCase()];
+                if (response) {
+                    var botResponse = getRandomResponse(response);
+                    setTimeout(function() {
+                        appendMessage('AvgBOT', botResponse, true);
+                    }, 500);
+                } else {
+                    setTimeout(function() {
+                        appendMessage('AvgBOT', "I'm sorry, I don't have an answer for that.", true);
+                    }, 500);
+                }
+            }
+        }
+
+        // Event listener for the submit button
+        chatSubmit.addEventListener('click', sendMessage);
+
+        // Event listener for the Enter key
+        chatInput.addEventListener('keyup', function(event) {
+            if (event.keyCode === 13) {
+                sendMessage();
+            }
+        });
+
+        // Hide the placeholder text when the input is focused
+        chatInput.addEventListener('focus', function() {
+            chatInput.placeholder = '';
+        });
+
+        // Show the placeholder text when the input is blurred and empty
+        chatInput.addEventListener('blur', function() {
+            if (chatInput.value === '') {
+                chatInput.placeholder = 'Type your message...';
+            }
+        });
+
+        // Dark mode toggle
+        darkModeToggle.addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+        });
+    </script>
+</body>
+</html>
